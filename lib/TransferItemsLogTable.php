@@ -8,7 +8,7 @@ use Bitrix\Main,
 Loc::loadMessages(__FILE__);
 
 /**
- * Class LogTable
+ * Class TransferItemsLogTable
  *
  * id int mandatory
  * add int mandatory
@@ -18,7 +18,7 @@ Loc::loadMessages(__FILE__);
  * @package TransferItems
  * @author Roman Merinov <merinovroman@gmail.com>
  **/
-class LogTable extends Main\Entity\DataManager
+class TransferItemsLogTable extends Main\Entity\DataManager
 {
     /**
      * Returns DB table name for entity.

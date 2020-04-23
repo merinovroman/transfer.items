@@ -5,8 +5,9 @@ define('TRANSFERITEMS_CSV_DELIMETR', '^^^');
 Bitrix\Main\Loader::registerAutoLoadClasses(
     "transferitems",
     [
-        "TransferItems\\TransferItemsTable" => "lib/transferitems.php",
-        "TransferItems\\LogTable" => "lib/log.php",
+        "TransferItems\\TransferItemsTable" => "lib/TransferItemsTable.php",
+        "TransferItems\\TransferItemsLogTable" => "lib/TransferItemsLogTable.php",
         "TransferItems\\Event" => "lib/event.php",
+        "TransferItems\\TransferItemsLib" => "lib/TransferItemsLib.php",
     ]
 );

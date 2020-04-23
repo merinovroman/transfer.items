@@ -6,13 +6,22 @@ use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\ModuleManager;
 use Bitrix\Main\Config\Option;
 use TransferItems\TransferItemsTable;
-use TransferItems\LogTable;
+use TransferItems\TransferItemsLogTable;
 
 Loc::loadMessages(__FILE__);
 
 class TransferItems extends CModule
 {
-    public function __construct()
+
+    var $MODULE_ID = 'transferitems';
+    var $MODULE_VERSION;
+    var $MODULE_VERSION_DATE;
+    var $MODULE_NAME;
+    var $MODULE_DESCRIPTION;
+    var $MODULE_CSS;
+    var $MODULE_GROUP_RIGHTS = "Y";
+
+    public function TransferItems()
     {
         $arModuleVersion = [];
 
@@ -23,7 +32,6 @@ class TransferItems extends CModule
             $this->MODULE_VERSION_DATE = $arModuleVersion['VERSION_DATE'];
         }
 
-        $this->MODULE_ID = 'transferitems';
         $this->MODULE_NAME = Loc::getMessage('TRANSFERITEMS_MODULE_NAME');
         $this->MODULE_DESCRIPTION = Loc::getMessage('TRANSFERITEMS_MODULE_DESCRIPTION');
         $this->MODULE_GROUP_RIGHTS = 'N';
@@ -49,7 +57,7 @@ class TransferItems extends CModule
     {
         if (Loader::includeModule($this->MODULE_ID)) {
             TransferItemsTable::getEntity()->createDbTable();
-            LogTable::getEntity()->createDbTable();
+            TransferItemsLogTable::getEntity()->createDbTable();
         }
     }
 
@@ -58,7 +66,7 @@ class TransferItems extends CModule
         if (Loader::includeModule($this->MODULE_ID)) {
             $connection = Application::getInstance()->getConnection();
             $connection->dropTable(TransferItemsTable::getTableName());
-            $connection->dropTable(LogTable::getTableName());
+            $connection->dropTable(TransferItemsLogTable::getTableName());
         }
     }
 

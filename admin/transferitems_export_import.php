@@ -8,7 +8,8 @@ use Bitrix\Main\Config\Option;
 use Bitrix\Highloadblock;
 use TransferItems\TransferItemsTable;
 use TransferItems\Event;
-use TransferItems\LogTable;
+use TransferItems\TransferItemsLogTable;
+use TransferItems\TransferItemsLib;
 
 if (!$USER->IsAdmin()) {
     $APPLICATION->AuthForm(GetMessage("ACCESS_DENIED"));
@@ -57,7 +58,7 @@ if ($request['ajax'] == 'y') {
 
         if ($nextPage > $pages) {
             if (Option::get('transferitems', 'logs')) {
-                LogTable::add([
+                TransferItemsLogTable::add([
                     'add' => (int)count(array_unique($_SESSION['transferitems_export']['logs'][Event::ADD])),
                     'delete' => (int)count(array_unique($_SESSION['transferitems_export']['logs'][Event::DELETE])),
                     'update' => (int)count(array_unique($_SESSION['transferitems_export']['logs'][Event::UPDATE])),
@@ -152,7 +153,7 @@ if ($request['ajax'] == 'y') {
 
         if ($nextPage > $pages) {
             if (Option::get('transferitems', 'logs')) {
-                LogTable::add([
+                TransferItemsLogTable::add([
                     'add' => (int)count(array_unique($_SESSION['transferitems_import']['logs'][Event::ADD])),
                     'delete' => (int)count(array_unique($_SESSION['transferitems_import']['logs'][Event::DELETE])),
                     'update' => (int)count(array_unique($_SESSION['transferitems_import']['logs'][Event::UPDATE])),
@@ -191,22 +192,11 @@ if ($request['ajax'] == 'y') {
  * ВЫБОРКА И ПОДГОТОВКА ДАННЫХ ФОРМЫ
  */
 
-$handbooks = $handbookNames = $hls = [];
-
-$hlblocks = Bitrix\Highloadblock\HighloadBlockTable::getList();
-while ($hl = $hlblocks->fetch()) {
-    $hls[$hl['TABLE_NAME']] = $hl['NAME'];
-}
-
-$properties = CIBlockProperty::GetList([], ["USER_TYPE" => "directory"]);
-while ($prop_fields = $properties->GetNext()) {
-    $handbooks[$hls[$prop_fields['USER_TYPE_SETTINGS']['TABLE_NAME']]] = $prop_fields['NAME'];
-    $handbookNames[] = $prop_fields['NAME'];
-}
+$handbook = TransferItemsLib::getHighloadBlockBlockProperty();
 
 $handbooksSelect = [
-    "REFERENCE" => $handbookNames,
-    "REFERENCE_ID" => array_keys($handbooks)
+    "REFERENCE" => $handbook['handbookNames'],
+    "REFERENCE_ID" => array_keys($handbook['handbooks'])
 ];
 
 require($_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/main/include/prolog_admin_after.php"); ?>
