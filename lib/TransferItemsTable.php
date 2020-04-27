@@ -1,8 +1,10 @@
 <?php
+
 namespace Transfer\Items;
 
 use Bitrix\Main,
     Bitrix\Main\Localization\Loc;
+
 Loc::loadMessages(__FILE__);
 
 /**
@@ -16,7 +18,6 @@ Loc::loadMessages(__FILE__);
  * @package Transfer\Items
  * @author Roman Merinov <merinovroman@gmail.com>
  **/
-
 class TransferItemsTable extends Main\Entity\DataManager
 {
     /**

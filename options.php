@@ -6,6 +6,7 @@ use Bitrix\Main\Loader;
 use Bitrix\Main\Config\Option;
 use Bitrix\Main\EventManager;
 use Transfer\Items\Event;
+use Transfer\Items\TransferItemsLib;
 
 $request = HttpApplication::getInstance()->getContext()->getRequest();
 $module_id = htmlspecialcharsbx($request["mid"] != "" ? $request["mid"] : $request["id"]);
@@ -18,15 +19,7 @@ Loader::includeModule('highloadblock');
 $hls = [];
 $handbooks = [];
 
-$hlblocks = Bitrix\Highloadblock\HighloadBlockTable::getList();
-while ($hl = $hlblocks->fetch()) {
-    $hls[$hl['TABLE_NAME']] = $hl['NAME'];
-}
-
-$properties = CIBlockProperty::GetList([], ["USER_TYPE" => "directory"]);
-while ($prop_fields = $properties->GetNext()) {
-    $handbooks[$hls[$prop_fields['USER_TYPE_SETTINGS']['TABLE_NAME']]] = $prop_fields['NAME'];
-}
+$handbooks = TransferItemsLib::getHighloadBlockBlockProperty();
 
 $aTabs = [
     [
@@ -44,7 +37,7 @@ $aTabs = [
                 "handbooks",
                 Loc::getMessage("TRANSFERITEMS_HANDBOOKS"),
                 '',
-                ["multiselectbox", $handbooks]
+                ["multiselectbox", $handbooks['handbooks']]
             ],
             [
                 "step",
@@ -65,7 +58,7 @@ if ($request->isPost() && check_bitrix_sessid()) {
             $optionValue = $request->getPost($arOption[0]);
             if ($request["apply"]) {
                 if ($arOption[0] == "handbooks") {
-                    foreach ($handbooks as $handbooksName => $handbooksVal) {
+                    foreach ($handbooks['handbooks'] as $handbooksName => $handbooksVal) {
                         $eventManager->UnRegisterEventHandler("", $handbooksName . 'OnAfterUpdate', $module_id, "Transfer\Items\Event", "updateHandbook");
                         $eventManager->UnRegisterEventHandler("", $handbooksName . 'OnAfterDelete', $module_id, "Transfer\Items\Event", "deleteHandbook");
                         $eventManager->UnRegisterEventHandler("", $handbooksName . 'OnAfterAdd', $module_id, "Transfer\Items\Event", "addHandbook");

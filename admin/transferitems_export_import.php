@@ -4,11 +4,6 @@ require_once($_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/main/include/prolog_ad
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\HttpApplication;
 use Bitrix\Main\Loader;
-use Bitrix\Main\Config\Option;
-use Bitrix\Highloadblock;
-use Transfer\Items\TransferItemsTable;
-use Transfer\Items\Event;
-use Transfer\Items\TransferItemsLogTable;
 use Transfer\Items\TransferItemsLib;
 
 if (!$USER->IsAdmin()) {
@@ -36,39 +31,9 @@ if ($request['ajax'] == 'y') {
     $actionType = $request['action_type'];
 
     if ($actionType == 'export') { // экспорт
-        $page = $_SESSION['transferitems_export']['page'] ?: 1;
-        $nextPage = $page + 1;
-        $handbookName = $request['handbook_export'];
-        $rows = TransferItemsTable::getList([
-            'filter' => ['handbook_name' => $handbookName],
-            'order' => ['id' => 'asc'],
-        ])->fetchAll();
 
-        $changesByHandbooksChank = array_chunk($rows, Option::get('transfer.items', 'step'));
-        if ($page == 1) {
-            file_put_contents(TRANSFERITEMS_EXPORT_FILE, '', LOCK_EX);
-        }
-        foreach ($changesByHandbooksChank[$page - 1] as $changeItem) {
-            $_SESSION['transferitems_export']['logs'][$changeItem['event']][] = $changeItem;
-            file_put_contents(TRANSFERITEMS_EXPORT_FILE, implode(TRANSFERITEMS_CSV_DELIMETR, $changeItem) . PHP_EOL, FILE_APPEND | LOCK_EX);
-        }
-
-        $pages = count($changesByHandbooksChank);
-        $_SESSION['transferitems_export']['page'] = $nextPage;
-        $_SESSION['transferitems_export']['pages'] = $pages;
-
-        if ($nextPage > $pages) {
-            if (Option::get('transferitems', 'logs')) {
-                TransferItemsLogTable::add([
-                    'add' => (int)count(array_unique($_SESSION['transferitems_export']['logs'][Event::ADD])),
-                    'delete' => (int)count(array_unique($_SESSION['transferitems_export']['logs'][Event::DELETE])),
-                    'update' => (int)count(array_unique($_SESSION['transferitems_export']['logs'][Event::UPDATE])),
-                    'errors' => Bitrix\Main\Web\Json::encode($_SESSION['transferitems_export']['errors'])
-                ]);
-            }
-            unset($_SESSION['transferitems_export']);
-            $complete = true;
-        }
+        $transferItems = new TransferItemsLib();
+        $export = $transferItems->actionExport($request);
 
         $APPLICATION->RestartBuffer();
         CAdminMessage::ShowMessage([
@@ -77,10 +42,10 @@ if ($request['ajax'] == 'y') {
             "HTML" => true,
             "TYPE" => "PROGRESS",
             "PROGRESS_TOTAL" => 100,
-            "PROGRESS_VALUE" => round($page / $pages * 100),
+            "PROGRESS_VALUE" => round($export->page / $export->pages * 100),
         ]);
 
-        if ($complete) {
+        if ($export->complete) {
             CAdminMessage::ShowNote(Loc::getMessage('ADMIN_END_EXPORT'));
             ?>
             <div style="margin-bottom: 30px;">
@@ -93,78 +58,9 @@ if ($request['ajax'] == 'y') {
         die;
 
     } else if ($actionType == 'import') { // импорт
-        $page = $_SESSION['transferitems_import']['page'] ?: 1;
-        $nextPage = $page + 1;
-        $allErrors = $errorsAr = [];
-        $handbookImportName = $request['handbook_import'];
 
-        $hlblock = Highloadblock\HighloadBlockTable::getList([
-            'filter' => ['=NAME' => $handbookImportName]
-        ])->fetch();
-
-        $hl = Highloadblock\HighloadBlockTable::compileEntity($hlblock)->getDataClass();
-
-        $file = $_FILES['file'];
-        move_uploaded_file($file['tmp_name'], TRANSFERITEMS_IMPORT_FILE);
-        $csv = file_get_contents(TRANSFERITEMS_IMPORT_FILE);
-        $csvAr = explode(PHP_EOL, $csv);
-        $csvArChank = array_chunk($csvAr, Option::get('transfer.items', 'step'));
-
-        foreach ($csvArChank[$page - 1] as $changeLine) {
-            $errorUpdate = '';
-            if (!$changeLine) {
-                continue;
-            }
-            $changeAr = explode(TRANSFERITEMS_CSV_DELIMETR, $changeLine);
-            if ($changeAr[4]) {
-                $changeAr[4] = Bitrix\Main\Web\Json::decode($changeAr[4]);
-            }
-            if ($changeAr[3] == Event::UPDATE) {
-                if (!$hl::getById($changeAr[2])->fetch()) {
-                    $errorUpdate = Loc::getMessage('ADMIN_ELEMENT_NOT_FOUND') . $changeAr[2];
-                }
-                $result = $hl::update($changeAr[2], $changeAr[4]);
-            } else if ($changeAr[3] == Event::DELETE) {
-                if (!$hl::getById($changeAr[2])->fetch()) {
-                    $errorUpdate = Loc::getMessage('ADMIN_ELEMENT_NOT_FOUND_DEL') . $changeAr[2];
-                }
-                $result = $hl::delete($changeAr[2]);
-            } else if ($changeAr[3] == Event::ADD) {
-                $result = $hl::add($changeAr[4]);
-            }
-
-            if (!$result->isSuccess()) {
-                foreach ($result->getErrorMessages() as $error) {
-                    $_SESSION['transferitems_import']['errors'][] = $error;
-                }
-            }
-            if ($errorUpdate) {
-                $_SESSION['transferitems_import']['errors'][] = $errorUpdate;
-            }
-            if ($result->isSuccess() && !$errorUpdate) {
-                $_SESSION['transferitems_import']['logs'][$changeAr[3]][] = $changeAr[2];
-            }
-        }
-
-        $allErrors = $_SESSION['transferitems_import']['errors'];
-
-        $pages = count($csvArChank);
-        $_SESSION['transferitems_import']['page'] = $nextPage;
-        $_SESSION['transferitems_import']['pages'] = $pages;
-
-        if ($nextPage > $pages) {
-            if (Option::get('transfer.items', 'logs')) {
-                TransferItemsLogTable::add([
-                    'add' => (int)count(array_unique($_SESSION['transferitems_import']['logs'][Event::ADD])),
-                    'delete' => (int)count(array_unique($_SESSION['transferitems_import']['logs'][Event::DELETE])),
-                    'update' => (int)count(array_unique($_SESSION['transferitems_import']['logs'][Event::UPDATE])),
-                    'errors' => Bitrix\Main\Web\Json::encode($_SESSION['transferitems_import']['errors'])
-                ]);
-            }
-            $asd = $_SESSION['transferitems_import']['logs'];
-            unset($_SESSION['transferitems_import']);
-            $complete = true;
-        }
+        $transferItems = new TransferItemsLib();
+        $import = $transferItems->actionImport($request);
 
         $APPLICATION->RestartBuffer();
         CAdminMessage::ShowMessage([
@@ -173,14 +69,14 @@ if ($request['ajax'] == 'y') {
             "HTML" => true,
             "TYPE" => "PROGRESS",
             "PROGRESS_TOTAL" => 100,
-            "PROGRESS_VALUE" => round($page / $pages * 100),
+            "PROGRESS_VALUE" => round($import->page / $import->pages * 100),
         ]);
 
-        if ($complete) {
+        if ($import->complete) {
             CAdminMessage::ShowNote(Loc::getMessage('ADMIN_END_IMPORT'));
             ?>
             <div style="margin-bottom: 30px;">
-                <? foreach ($allErrors as $error) { ?>
+                <? foreach ($import->allErrors as $error) { ?>
                     <div><?= $error ?></div>
                 <? } ?>
             </div>
