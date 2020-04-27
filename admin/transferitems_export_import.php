@@ -6,17 +6,17 @@ use Bitrix\Main\HttpApplication;
 use Bitrix\Main\Loader;
 use Bitrix\Main\Config\Option;
 use Bitrix\Highloadblock;
-use TransferItems\TransferItemsTable;
-use TransferItems\Event;
-use TransferItems\TransferItemsLogTable;
-use TransferItems\TransferItemsLib;
+use Transfer\Items\TransferItemsTable;
+use Transfer\Items\Event;
+use Transfer\Items\TransferItemsLogTable;
+use Transfer\Items\TransferItemsLib;
 
 if (!$USER->IsAdmin()) {
     $APPLICATION->AuthForm(GetMessage("ACCESS_DENIED"));
 }
 
 Loc::loadMessages(__FILE__);
-Loader::includeModule('transferitems');
+Loader::includeModule('transfer.items');
 Loader::includeModule('iblock');
 Loader::includeModule('highloadblock');
 CJSCore::Init(["jquery"]);
@@ -29,8 +29,9 @@ $aTabs = [
     ["DIV" => "edit2", "TAB" => Loc::getMessage('ADMIN_IMPORT')],
 ];
 $tabControl = new CAdminTabControl("tabControl", $aTabs);
-
+//var_dump(Loader::autoLoad());
 // Обработка экспорта и импорта
+
 if ($request['ajax'] == 'y') {
     $actionType = $request['action_type'];
 
@@ -43,7 +44,7 @@ if ($request['ajax'] == 'y') {
             'order' => ['id' => 'asc'],
         ])->fetchAll();
 
-        $changesByHandbooksChank = array_chunk($rows, Option::get('transferitems', 'step'));
+        $changesByHandbooksChank = array_chunk($rows, Option::get('transfer.items', 'step'));
         if ($page == 1) {
             file_put_contents(TRANSFERITEMS_EXPORT_FILE, '', LOCK_EX);
         }
@@ -107,7 +108,7 @@ if ($request['ajax'] == 'y') {
         move_uploaded_file($file['tmp_name'], TRANSFERITEMS_IMPORT_FILE);
         $csv = file_get_contents(TRANSFERITEMS_IMPORT_FILE);
         $csvAr = explode(PHP_EOL, $csv);
-        $csvArChank = array_chunk($csvAr, Option::get('transferitems', 'step'));
+        $csvArChank = array_chunk($csvAr, Option::get('transfer.items', 'step'));
 
         foreach ($csvArChank[$page - 1] as $changeLine) {
             $errorUpdate = '';
@@ -152,7 +153,7 @@ if ($request['ajax'] == 'y') {
         $_SESSION['transferitems_import']['pages'] = $pages;
 
         if ($nextPage > $pages) {
-            if (Option::get('transferitems', 'logs')) {
+            if (Option::get('transfer.items', 'logs')) {
                 TransferItemsLogTable::add([
                     'add' => (int)count(array_unique($_SESSION['transferitems_import']['logs'][Event::ADD])),
                     'delete' => (int)count(array_unique($_SESSION['transferitems_import']['logs'][Event::DELETE])),

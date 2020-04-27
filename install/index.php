@@ -5,15 +5,15 @@ use Bitrix\Main\Loader;
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\ModuleManager;
 use Bitrix\Main\Config\Option;
-use TransferItems\TransferItemsTable;
-use TransferItems\TransferItemsLogTable;
+use Transfer\Items\TransferItemsTable;
+use Transfer\Items\TransferItemsLogTable;
 
 Loc::loadMessages(__FILE__);
 
-class TransferItems extends CModule
+class transfer_items extends CModule
 {
 
-    var $MODULE_ID = 'transferitems';
+    var $MODULE_ID = 'transfer.items';
     var $MODULE_VERSION;
     var $MODULE_VERSION_DATE;
     var $MODULE_NAME;
@@ -21,7 +21,7 @@ class TransferItems extends CModule
     var $MODULE_CSS;
     var $MODULE_GROUP_RIGHTS = "Y";
 
-    public function TransferItems()
+    public function transfer_items()
     {
         $arModuleVersion = [];
 
@@ -75,9 +75,9 @@ class TransferItems extends CModule
         $handbookOptions = explode(',', Option::get($this->MODULE_ID, 'handbooks'));
         $eventManager = \Bitrix\Main\EventManager::getInstance();
         foreach ($handbookOptions as $handbooksName) {
-            $eventManager->UnRegisterEventHandler("", $handbooksName . 'OnAfterUpdate', $this->MODULE_ID, "TransferItems\Event", "updateHandbook");
-            $eventManager->UnRegisterEventHandler("", $handbooksName . 'OnAfterDelete', $this->MODULE_ID, "TransferItems\Event", "deleteHandbook");
-            $eventManager->UnRegisterEventHandler("", $handbooksName . 'OnAfterAdd', $this->MODULE_ID, "TransferItems\Event", "addHandbook");
+            $eventManager->UnRegisterEventHandler("", $handbooksName . 'OnAfterUpdate', $this->MODULE_ID, "Transfer\Items\Event", "updateHandbook");
+            $eventManager->UnRegisterEventHandler("", $handbooksName . 'OnAfterDelete', $this->MODULE_ID, "Transfer\Items\Event", "deleteHandbook");
+            $eventManager->UnRegisterEventHandler("", $handbooksName . 'OnAfterAdd', $this->MODULE_ID, "Transfer\Items\Event", "addHandbook");
         }
         return true;
     }

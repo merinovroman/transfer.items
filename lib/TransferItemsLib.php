@@ -1,6 +1,6 @@
 <?php
 
-namespace TransferItems;
+namespace Transfer\Items;
 
 use Bitrix\Main\Loader;
 
@@ -10,7 +10,7 @@ Loader::includeModule('highloadblock');
 /**
  * Class TransferItemsLib
  *
- * @package TransferItems
+ * @package Transfer\Items
  * @author Roman Merinov <merinovroman@gmail.com>
  */
 class TransferItemsLib

@@ -5,7 +5,7 @@ use Bitrix\Main\HttpApplication;
 use Bitrix\Main\Loader;
 use Bitrix\Main\Config\Option;
 use Bitrix\Main\EventManager;
-use TransferItems\Event;
+use Transfer\Items\Event;
 
 $request = HttpApplication::getInstance()->getContext()->getRequest();
 $module_id = htmlspecialcharsbx($request["mid"] != "" ? $request["mid"] : $request["id"]);
@@ -66,15 +66,15 @@ if ($request->isPost() && check_bitrix_sessid()) {
             if ($request["apply"]) {
                 if ($arOption[0] == "handbooks") {
                     foreach ($handbooks as $handbooksName => $handbooksVal) {
-                        $eventManager->UnRegisterEventHandler("", $handbooksName . 'OnAfterUpdate', $module_id, "TransferItems\Event", "updateHandbook");
-                        $eventManager->UnRegisterEventHandler("", $handbooksName . 'OnAfterDelete', $module_id, "TransferItems\Event", "deleteHandbook");
-                        $eventManager->UnRegisterEventHandler("", $handbooksName . 'OnAfterAdd', $module_id, "TransferItems\Event", "addHandbook");
+                        $eventManager->UnRegisterEventHandler("", $handbooksName . 'OnAfterUpdate', $module_id, "Transfer\Items\Event", "updateHandbook");
+                        $eventManager->UnRegisterEventHandler("", $handbooksName . 'OnAfterDelete', $module_id, "Transfer\Items\Event", "deleteHandbook");
+                        $eventManager->UnRegisterEventHandler("", $handbooksName . 'OnAfterAdd', $module_id, "Transfer\Items\Event", "addHandbook");
                     }
 
                     foreach ($optionValue as $val) {
-                        $eventManager->registerEventHandler("", $val . 'OnAfterUpdate', $module_id, "TransferItems\Event", "updateHandbook");
-                        $eventManager->registerEventHandler("", $val . 'OnAfterDelete', $module_id, "TransferItems\Event", "deleteHandbook");
-                        $eventManager->registerEventHandler("", $val . 'OnAfterAdd', $module_id, "TransferItems\Event", "addHandbook");
+                        $eventManager->registerEventHandler("", $val . 'OnAfterUpdate', $module_id, "Transfer\Items\Event", "updateHandbook");
+                        $eventManager->registerEventHandler("", $val . 'OnAfterDelete', $module_id, "Transfer\Items\Event", "deleteHandbook");
+                        $eventManager->registerEventHandler("", $val . 'OnAfterAdd', $module_id, "Transfer\Items\Event", "addHandbook");
                     }
                 }
 

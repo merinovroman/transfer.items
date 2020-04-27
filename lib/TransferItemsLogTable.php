@@ -1,6 +1,6 @@
 <?php
 
-namespace TransferItems;
+namespace Transfer\Items;
 
 use Bitrix\Main,
     Bitrix\Main\Localization\Loc;
@@ -15,7 +15,7 @@ Loc::loadMessages(__FILE__);
  * update int mandatory
  * delete int mandatory
  *
- * @package TransferItems
+ * @package Transfer\Items
  * @author Roman Merinov <merinovroman@gmail.com>
  **/
 class TransferItemsLogTable extends Main\Entity\DataManager

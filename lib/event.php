@@ -1,11 +1,11 @@
 <?php
 
-namespace TransferItems;
+namespace Transfer\Items;
 
 /**
  * Class Event
  *
- * @package TransferItems
+ * @package Transfer\Items
  * @author Roman Merinov <merinovroman@gmail.com>
  */
 class Event
